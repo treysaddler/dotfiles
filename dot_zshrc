@@ -14,7 +14,7 @@ COMPLETION_WAITING_DOTS="true"
 DISABLE_UNTRACKED_FILES_DIRTY="true"
 
 # Which plugins to load
-plugins=(asdf git uv zsh-vi-mode)
+plugins=(asdf docker git uv zsh-vi-mode)
 
 source $ZSH/oh-my-zsh.sh
 
