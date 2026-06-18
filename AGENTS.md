@@ -39,3 +39,12 @@ If the user asks to "save" or "track" a current config file:
 *   `private_empty_dot_bashrc`: Placeholder for Bash configuration.
 *   `README.md`: Human-readable documentation.
 *   `AGENTS.md`: AI-readable documentation.
+
+## Operational Notes
+
+1. Keep shell env sourcing guarded to avoid startup errors on machines where tools are missing.
+    * Example patterns:
+      * `[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"`
+      * `[ -f "$HOME/google-cloud-sdk/path.zsh.inc" ] && . "$HOME/google-cloud-sdk/path.zsh.inc"`
+2. If chezmoi prompts because a target file changed outside chezmoi, use non-interactive flags to avoid stalling in an interactive alternate buffer.
+    * Command: `chezmoi apply --force --no-pager --no-tty ~/.bashrc`
