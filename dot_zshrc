@@ -70,7 +70,7 @@ DISABLE_UNTRACKED_FILES_DIRTY="true"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(asdf chezmoi git uv zsh-vi-mode)
+plugins=(asdf aws chezmoi git uv vi-mode)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -107,3 +107,32 @@ alias ls="ls -lah"
 
 # export R_HOME="$(asdf where r 4.4.0)/lib/R"
 export RSTUDIO_WHICH_R=/Users/trey/.asdf/shims/R
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/saddlerto/.lmstudio/bin"
+# End of LM Studio CLI section
+
+fpath+=~/.zfunc
+
+_just_completion() {
+    if [[ -f "justfile" ]]; then
+      local options
+      options="$(just --summary)"
+      reply=(${(s: :)options})  # turn into array and write to return variable
+    fi
+}
+
+compctl -K _just_completion just
+
+# Hermes Agent — ensure ~/.local/bin is on PATH
+export PATH="$HOME/.local/bin:$PATH"
+
+# === NIEHS LiteLLM proxy / SSH gateway ===
+# Open a SOCKS5 tunnel through the NIEHS SSH gateway (prompts for PIV PIN).
+# Keep the terminal open; Hermes (azure-claude-opus-4.8) and curl route via
+# localhost:8080. Stops on Ctrl-C. Keepalives prevent idle drops.
+alias niehs-tunnel='ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 -I /usr/local/lib/opensc-pkcs11.so -D 8080 -N saddlerto@ssh.niehs.nih.gov'
+# Report whether the SOCKS tunnel is currently listening.
+alias niehs-tunnel-status='lsof -nP -iTCP:8080 -sTCP:LISTEN >/dev/null 2>&1 && echo "NIEHS SOCKS tunnel :8080 ALIVE" || echo "NIEHS SOCKS tunnel DOWN — run niehs-tunnel"'
+# Smoke-test LiteLLM reachability through the tunnel (HTTP 401 = reachable, no key needed).
+alias niehs-litellm-test='curl -s -o /dev/null -w "LiteLLM HTTP %{http_code}\n" --max-time 20 -x socks5h://localhost:8080 https://litellm.toxpipe.niehs.nih.gov/v1/models'
