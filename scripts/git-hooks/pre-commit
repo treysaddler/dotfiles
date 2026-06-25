@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+#
+# pre-commit hook for the chezmoi dotfiles repo.
+#
+# 1. Verifies the sanitized Hermes config reference is up to date with the live
+#    config.yaml (runs regen-hermes-config-reference.py --check).
+# 2. Belt-and-braces: greps the staged changes for plaintext secrets and blocks
+#    the commit if any are found (encrypted *.age blobs are exempt).
+#
+# Installed via:  git config core.hooksPath scripts/git-hooks
+# This file is versioned, so it travels with the repo.
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+REGEN="$REPO_ROOT/scripts/regen-hermes-config-reference.py"
+
+fail() { printf '\n\033[31mpre-commit: %s\033[0m\n' "$1" >&2; exit 1; }
+
+# --- 1. Hermes config reference drift check -------------------------------
+# Only enforce if the live config and the helper script both exist; otherwise
+# skip silently so the hook doesn't break commits on machines without Hermes.
+if [ -f "$HOME/.hermes/config.yaml" ] && [ -f "$REGEN" ]; then
+  if ! python3 "$REGEN" --check >/dev/null 2>&1; then
+    printf '\n\033[33mpre-commit: Hermes config reference is out of date.\033[0m\n' >&2
+    printf '  Run:  hermes-config-ref   (or: python3 %s)\n' "$REGEN" >&2
+    printf '  then: git add .hermes-reference/config.yaml.sanitized\n' >&2
+    fail "commit blocked: stale config reference"
+  fi
+fi
+
+# --- 2. Plaintext secret scan on staged content ---------------------------
+# Patterns: OpenAI-style sk- keys, Atlassian ATATT tokens, Bitwarden BWS tokens.
+SECRET_RE='sk-[A-Za-z0-9]{20,}|ATATT[A-Za-z0-9]{20,}|BWS_[A-Za-z0-9]{12,}'
+leaked=""
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
+  case "$f" in
+    *.age) continue ;;            # encrypted blobs are expected ciphertext
+  esac
+  # Scan the STAGED version of the file (what will actually be committed).
+  if git show ":$f" 2>/dev/null | grep -qE "$SECRET_RE"; then
+    leaked="$leaked  $f\n"
+  fi
+done < <(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -n "$leaked" ]; then
+  printf '\n\033[31mpre-commit: plaintext secret(s) detected in staged files:\033[0m\n' >&2
+  printf "$leaked" >&2
+  fail "commit blocked: remove/encrypt the secret before committing"
+fi
+
+exit 0
