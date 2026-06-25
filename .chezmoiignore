@@ -1,0 +1,42 @@
+# .chezmoiignore — paths (relative to $HOME) that chezmoi must NOT manage/apply.
+# Keeps Hermes runtime state, caches, secrets-in-the-clear, and huge binaries out of the repo.
+
+# --- The sanitized config reference lives in the source dir only; never apply it to $HOME ---
+.hermes-reference
+
+# --- Hermes runtime state & databases (machine-local, change constantly) ---
+.hermes/state.db
+.hermes/state.db-shm
+.hermes/state.db-wal
+.hermes/state-snapshots
+.hermes/sessions
+.hermes/logs
+.hermes/cache
+.hermes/image_cache
+.hermes/audio_cache
+.hermes/sandboxes
+.hermes/pairing
+
+# --- Caches & ephemeral files ---
+.hermes/*_cache.json
+.hermes/.update_check
+.hermes/.hermes_history
+.hermes/interrupt_debug.log
+.hermes/auth.lock
+
+# --- Backups (timestamped, noise) ---
+.hermes/*.bak.*
+
+# --- The live config.yaml is rewritten by Hermes itself; we track a sanitized
+#     reference snapshot in the source instead, so ignore the live target ---
+.hermes/config.yaml
+
+# --- Machine-specific / large binaries ---
+.hermes/bin
+.hermes/hermes-agent
+.hermes/models_dev_cache.json
+.hermes/niehs-ca-bundle.pem
+.hermes/.install_method
+
+# --- Auth tokens stay machine-local (the encrypted .env carries the real secrets) ---
+.hermes/auth.json
