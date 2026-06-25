@@ -1,0 +1,41 @@
+[user]
+	email = treyosaddler@gmail.com
+	name = Trey Saddler
+
+[core]
+	editor = nvim
+	autocrlf = input
+	excludesfile = ~/.gitignore_global
+
+[init]
+	defaultBranch = main
+
+[pull]
+	rebase = true
+
+[push]
+	autoSetupRemote = true
+
+[fetch]
+	prune = true
+
+[rebase]
+	autoStash = true
+
+[diff]
+	colorMoved = zebra
+
+[merge]
+	conflictstyle = zdiff3
+
+[alias]
+	lg = log --oneline --graph --decorate --all
+	st = status -sb
+	co = checkout
+	br = branch
+
+[credential]
+	helper = store
+
+[color]
+	ui = auto

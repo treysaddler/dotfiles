@@ -1,0 +1,85 @@
+#!/bin/sh
+# Installs system packages. Re-runs automatically if the package list changes.
+
+{{ if eq .chezmoi.os "darwin" -}}
+# macOS — install via Homebrew
+if ! command -v brew >/dev/null 2>&1; then
+  echo "Homebrew not found. Installing..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+brew install \
+  neovim \
+  zsh \
+  git \
+  curl \
+  wget \
+  fzf \
+  ripgrep \
+  fd \
+  tmux \
+  tree \
+  jq \
+  asdf
+
+{{ else if eq .chezmoi.os "linux" -}}
+# Linux — detect package manager at runtime
+
+if command -v apt-get >/dev/null 2>&1; then
+  # Debian/Ubuntu-based
+  sudo apt-get update -y
+  sudo apt-get install -y \
+    neovim \
+    zsh \
+    git \
+    curl \
+    wget \
+    fzf \
+    ripgrep \
+    fd-find \
+    tmux \
+    tree \
+    jq
+
+elif command -v dnf >/dev/null 2>&1; then
+  # RHEL 8+ / Fedora (dnf)
+  sudo dnf install -y \
+    neovim \
+    zsh \
+    git \
+    curl \
+    wget \
+    fzf \
+    ripgrep \
+    fd-find \
+    tmux \
+    tree \
+    jq
+
+elif command -v yum >/dev/null 2>&1; then
+  # Older RHEL/CentOS 7 (yum) — neovim and others require EPEL
+  sudo yum install -y epel-release
+  sudo yum install -y \
+    neovim \
+    zsh \
+    git \
+    curl \
+    wget \
+    fzf \
+    ripgrep \
+    tmux \
+    tree \
+    jq
+
+else
+  echo "ERROR: No supported package manager found (apt-get, dnf, yum)." >&2
+  exit 1
+fi
+
+{{ end -}}
+
+# Install uv (Python package manager) if not present
+if ! command -v uv >/dev/null 2>&1; then
+  echo "Installing uv..."
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+fi
