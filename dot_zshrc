@@ -136,3 +136,8 @@ alias niehs-tunnel='ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 -I /u
 alias niehs-tunnel-status='lsof -nP -iTCP:8080 -sTCP:LISTEN >/dev/null 2>&1 && echo "NIEHS SOCKS tunnel :8080 ALIVE" || echo "NIEHS SOCKS tunnel DOWN — run niehs-tunnel"'
 # Smoke-test LiteLLM reachability through the tunnel (HTTP 401 = reachable, no key needed).
 alias niehs-litellm-test='curl -s -o /dev/null -w "LiteLLM HTTP %{http_code}\n" --max-time 20 -x socks5h://localhost:8080 https://litellm.toxpipe.niehs.nih.gov/v1/models'
+
+# Regenerate the sanitized Hermes config.yaml reference snapshot tracked by chezmoi.
+# Usage: hermes-config-ref           (regenerate)
+#        hermes-config-ref --check    (CI-style drift check, exit 1 on drift)
+alias hermes-config-ref='python3 "$(chezmoi source-path)/scripts/regen-hermes-config-reference.py"'

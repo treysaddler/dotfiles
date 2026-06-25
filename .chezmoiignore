@@ -3,6 +3,8 @@
 
 # --- The sanitized config reference lives in the source dir only; never apply it to $HOME ---
 .hermes-reference
+# --- Helper scripts live in the repo but are not deployed to $HOME ---
+scripts
 
 # --- Hermes runtime state & databases (machine-local, change constantly) ---
 .hermes/state.db
